@@ -1,0 +1,58 @@
+1650125671: mosquitto version 2.0.14 starting
+1650125671: Config loaded from /mosquitto/config/mosquitto.conf.
+1650125671: Opening ipv4 listen socket on port 1884.
+1650125671: mosquitto version 2.0.14 running
+1650126463: New connection from 192.168.178.40:45640 on port 1884.
+1650126463: New client connected from 192.168.178.40:45640 as auto-8D890589-48DA-6FC4-D01C-E9FD823B7114 (p2, c1, k60).
+1650126757: New connection from 192.168.178.40:45684 on port 1884.
+1650126757: New client connected from 192.168.178.40:45684 as Publisher (p2, c1, k60).
+1650126757: Client Publisher disconnected.
+1650127156: New connection from 192.168.178.40:45796 on port 1884.
+1650127156: New client connected from 192.168.178.40:45796 as Publisher (p2, c1, k60).
+1650127156: Client Publisher disconnected.
+1650127160: New connection from 192.168.178.40:45798 on port 1884.
+1650127160: New client connected from 192.168.178.40:45798 as Publisher (p2, c1, k60).
+1650127160: Client Publisher disconnected.
+1650127172: New connection from 192.168.178.40:45802 on port 1884.
+1650127172: New client connected from 192.168.178.40:45802 as Publisher (p2, c1, k60).
+1650127172: Client Publisher disconnected.
+1650127175: New connection from 192.168.178.40:45804 on port 1884.
+1650127175: New client connected from 192.168.178.40:45804 as Publisher (p2, c1, k60).
+1650127175: Client Publisher disconnected.
+1650127248: New connection from 192.168.178.40:45810 on port 1884.
+1650127248: New client connected from 192.168.178.40:45810 as Publisher (p2, c1, k60).
+1650127258: Client Publisher disconnected.
+1650127393: New connection from 192.168.178.40:45898 on port 1884.
+1650127393: New client connected from 192.168.178.40:45898 as Publisher (p2, c1, k60).
+1650127403: Client Publisher disconnected.
+1650127471: Saving in-memory database to /mosquitto/data/mosquitto.db.
+1650127494: New connection from 192.168.178.40:45942 on port 1884.
+1650127494: New client connected from 192.168.178.40:45942 as Publisher (p2, c1, k60).
+1650127496: Client Publisher closed its connection.
+1650129272: Saving in-memory database to /mosquitto/data/mosquitto.db.
+1650129946: New connection from 172.17.0.2:36604 on port 1884.
+1650129946: New client connected from 172.17.0.2:36604 as Publisher (p2, c1, k60).
+1650129950: Client auto-8D890589-48DA-6FC4-D01C-E9FD823B7114 disconnected.
+1650129953: Client Publisher closed its connection.
+1650129954: New connection from 192.168.178.40:46488 on port 1884.
+1650129954: New client connected from 192.168.178.40:46488 as auto-B21A525B-09F8-D949-53E3-0AA7CF5FF1AC (p2, c1, k60).
+1650130377: Client auto-B21A525B-09F8-D949-53E3-0AA7CF5FF1AC disconnected.
+1650130407: mosquitto version 2.0.14 terminating
+1650130407: Saving in-memory database to /mosquitto/data/mosquitto.db.
+1650304778: mosquitto version 2.0.14 starting
+1650304778: Config loaded from /mosquitto/config/mosquitto.conf.
+1650304778: Opening ipv4 listen socket on port 1884.
+1650304778: mosquitto version 2.0.14 running
+1650304789: New connection from 192.168.178.51:63074 on port 1884.
+1650304789: New client connected from 192.168.178.51:63074 as ESP32_8e1A6C (p2, c1, k120).
+1650304808: New connection from 192.168.178.40:60268 on port 1884.
+1650304808: New client connected from 192.168.178.40:60268 as auto-3A9AA066-D5B6-4628-A27F-F79E1E237E36 (p2, c1, k60).
+1650304817: New connection from 192.168.178.51:61634 on port 1884.
+1650304817: Client ESP32_8e1A6C already connected, closing old connection.
+1650304817: New client connected from 192.168.178.51:61634 as ESP32_8e1A6C (p2, c1, k120).
+1650305351: New connection from 192.168.178.51:55749 on port 1884.
+1650305351: Client ESP32_8e1A6C already connected, closing old connection.
+1650305351: New client connected from 192.168.178.51:55749 as ESP32_8e1A6C (p2, c1, k120).
+1650305383: Client auto-3A9AA066-D5B6-4628-A27F-F79E1E237E36 disconnected.
+1650305498: mosquitto version 2.0.14 terminating
+1650305498: Saving in-memory database to /mosquitto/data/mosquitto.db.
