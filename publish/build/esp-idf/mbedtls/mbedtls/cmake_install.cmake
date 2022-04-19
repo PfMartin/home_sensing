@@ -32,10 +32,16 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "TRUE")
 endif()
 
+# Set default install directory permissions.
+if(NOT DEFINED CMAKE_OBJDUMP)
+  set(CMAKE_OBJDUMP "/home/martin/.espressif/tools/xtensa-esp32-elf/esp-2021r2-patch3-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-objdump")
+endif()
+
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/martin/Projects/mqtt/publish/build/esp-idf/mbedtls/mbedtls/library/cmake_install.cmake")
   include("/home/martin/Projects/mqtt/publish/build/esp-idf/mbedtls/mbedtls/include/cmake_install.cmake")
+  include("/home/martin/Projects/mqtt/publish/build/esp-idf/mbedtls/mbedtls/3rdparty/cmake_install.cmake")
+  include("/home/martin/Projects/mqtt/publish/build/esp-idf/mbedtls/mbedtls/library/cmake_install.cmake")
 
 endif()
 
