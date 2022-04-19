@@ -1,1 +1,6 @@
+# Broker
+./broker/log
+./broker/data
+
+# Publish
 ./publish/build
