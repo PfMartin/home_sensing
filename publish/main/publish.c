@@ -79,8 +79,8 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
     {
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-        esp_mqtt_client_subscribe(client, "my_topic", 0);
-        esp_mqtt_client_publish(client, "my_topic", "Hi to all from ESP32 .........", 0, 1, 0);
+        esp_mqtt_client_subscribe(client, "worms", 0);
+        esp_mqtt_client_publish(client, "worms", "ESP32 publishing to topic 'worms'", 0, 1, 0);
         break;
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
@@ -139,6 +139,13 @@ void app_main(void)
 
     esp_mqtt_client_handle_t client = mqtt_app_start();
 
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
-    esp_mqtt_client_publish(client, "my_topic", "Next one", 0, 1, 0);
+    int counter = 0;
+    char number_string[3];
+
+    while (1) {
+      sprintf(number_string, "%d", counter);
+      vTaskDelay(1000 / portTICK_PERIOD_MS);
+      esp_mqtt_client_publish(client, "worms", number_string, 0, 1, 0);
+      counter++;
+    }
 }

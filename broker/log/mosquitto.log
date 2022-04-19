@@ -56,3 +56,30 @@
 1650305383: Client auto-3A9AA066-D5B6-4628-A27F-F79E1E237E36 disconnected.
 1650305498: mosquitto version 2.0.14 terminating
 1650305498: Saving in-memory database to /mosquitto/data/mosquitto.db.
+1650360670: mosquitto version 2.0.14 starting
+1650360670: Config loaded from /mosquitto/config/mosquitto.conf.
+1650360670: Opening ipv4 listen socket on port 1884.
+1650360670: mosquitto version 2.0.14 running
+1650360739: New connection from 192.168.178.40:39400 on port 1884.
+1650360739: New client connected from 192.168.178.40:39400 as auto-A41051B6-AF94-0ACA-9DC2-1C7657BC1FAB (p2, c1, k60).
+1650360769: New connection from 192.168.178.40:39404 on port 1884.
+1650360769: New client connected from 192.168.178.40:39404 as auto-A4E39158-E472-1FBB-AE5F-CBC852907B46 (p2, c1, k60).
+1650360769: Client auto-A4E39158-E472-1FBB-AE5F-CBC852907B46 disconnected.
+1650361030: New connection from 192.168.178.51:62914 on port 1884.
+1650361030: New client connected from 192.168.178.51:62914 as ESP32_8e1A6C (p2, c1, k120).
+1650361052: New connection from 192.168.178.51:58214 on port 1884.
+1650361052: Client ESP32_8e1A6C already connected, closing old connection.
+1650361052: New client connected from 192.168.178.51:58214 as ESP32_8e1A6C (p2, c1, k120).
+1650361103: New connection from 192.168.178.51:62462 on port 1884.
+1650361103: Client ESP32_8e1A6C already connected, closing old connection.
+1650361103: New client connected from 192.168.178.51:62462 as ESP32_8e1A6C (p2, c1, k120).
+1650361195: New connection from 192.168.178.51:63117 on port 1884.
+1650361195: Client ESP32_8e1A6C already connected, closing old connection.
+1650361195: New client connected from 192.168.178.51:63117 as ESP32_8e1A6C (p2, c1, k120).
+1650361200: Client auto-A41051B6-AF94-0ACA-9DC2-1C7657BC1FAB disconnected.
+1650361231: New connection from 192.168.178.40:39632 on port 1884.
+1650361231: New client connected from 192.168.178.40:39632 as auto-B0314213-CA9C-29D9-341E-563D14BE0C45 (p2, c1, k60).
+1650361244: New connection from 192.168.178.51:59303 on port 1884.
+1650361244: Client ESP32_8e1A6C already connected, closing old connection.
+1650361244: New client connected from 192.168.178.51:59303 as ESP32_8e1A6C (p2, c1, k120).
+1650361286: Client auto-B0314213-CA9C-29D9-341E-563D14BE0C45 disconnected.
