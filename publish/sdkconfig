@@ -273,13 +273,6 @@ CONFIG_PARTITION_TABLE_MD5=y
 # end of Partition Table
 
 #
-# Custom I2C Configuration
-#
-CONFIG_I2C_MASTER_SCL=19
-CONFIG_I2C_MASTER_SDA=18
-# end of Custom I2C Configuration
-
-#
 # Compiler options
 #
 CONFIG_COMPILER_OPTIMIZATION_DEFAULT=y

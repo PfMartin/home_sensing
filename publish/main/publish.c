@@ -27,8 +27,8 @@
 #define SSID                        "FRITZ!Box 7582 PJ"
 #define PASSPHRASE                  "95605533072376088713"
 
-#define I2C_MASTER_SCL              CONFIG_I2C_MASTER_SCL
-#define I2C_MASTER_SDA              CONFIG_I2C_MASTER_SDA
+#define I2C_MASTER_SCL              22
+#define I2C_MASTER_SDA              21
 #define I2C_MASTER_NUM              0
 #define I2C_MASTER_FREQ_HZ          400000
 #define I2C_MASTER_RX_BUF_DISABLE   0
@@ -147,8 +147,8 @@ static esp_err_t i2c_master_init(void) {
 
   i2c_config_t conf = {
     .mode = I2C_MODE_MASTER,
-    .sda_io_num = 21,
-    .scl_io_num = 22,
+    .sda_io_num = I2C_MASTER_SDA,
+    .scl_io_num = I2C_MASTER_SCL,
     .sda_pullup_en = GPIO_PULLUP_ENABLE,
     .scl_pullup_en = GPIO_PULLUP_ENABLE,
     .master.clk_speed = I2C_MASTER_FREQ_HZ,
