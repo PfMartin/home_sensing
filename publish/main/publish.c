@@ -1,4 +1,5 @@
-// https://github.com/SIMS-IOT-Devices/MQTT-ESP-IDF/blob/main/mqtt_tcp_pub_sub.c
+// mqtt: https://github.com/SIMS-IOT-Devices/MQTT-ESP-IDF/blob/main/mqtt_tcp_pub_sub.c
+// i2c: https://github.com/espressif/esp-idf/blob/master/examples/peripherals/i2c/i2c_simple/main/i2c_simple_main.c
 
 #include <stdio.h>
 #include <stdint.h>
@@ -163,6 +164,15 @@ static esp_err_t dps310_register_read(uint8_t reg_addr, uint8_t *data, size_t le
   return i2c_master_write_read_device(I2C_MASTER_NUM, DPS310_SENSOR_ADDR, &reg_addr, 1, data, len, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
 }
 
+static esp_err_t dps310_register_write_byte(uint8_t reg_addr, uint8_t data) {
+  int ret;
+
+  uint8_t write_buf[2] = { reg_addr, data };
+  ret = i2c_master_write_to_device(I2C_MASTER_NUM, DPS310_SENSOR_ADDR, write_buf, sizeof(write_buf), I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
+
+  return ret;
+}
+
 void app_main(void)
 {
     nvs_flash_init();
@@ -181,19 +191,51 @@ void app_main(void)
 
     vTaskDelay(2000 / portTICK_PERIOD_MS);
 
-    int counter = 0;
-    char number_string[3];
 
-    uint8_t data[2];
+    // Read coefficients 0x10 - 0x20
+
+    // Configure pressure measurements 0x06
+    ESP_ERROR_CHECK(dps310_register_write_byte(0x06, 0x00));
+
+    // Configure temperature measurements 0x07
+    ESP_ERROR_CHECK(dps310_register_write_byte(0x07, 0x00));
+
+    // Configure interrupt FIFO configuration 0x09
+    ESP_ERROR_CHECK(dps310_register_write_byte(0x09, 0x00));
+
+
+
 
     while (1) {
-      sprintf(number_string, "%d", counter);
       vTaskDelay(1000 / portTICK_PERIOD_MS);
-      esp_mqtt_client_publish(client, "worms", number_string, 0, 1, 0);
-      counter++;
 
-      ESP_ERROR_CHECK(dps310_register_read(DPS310_PRESSURE_ADDR, data, 1));
-      ESP_LOGI(I2C_TAG, "Result: %X", data[0]);
+      // Set to temperature measurement mode
+      ESP_ERROR_CHECK(dps310_register_write_byte(0x08, 0x02));
+
+      uint8_t temp1[2];
+      uint8_t temp2[2];
+      uint8_t temp3[2];
+
+      // Read temperature 0x03 - 0x05
+      ESP_ERROR_CHECK(dps310_register_read(0x03, temp1, 1));
+      ESP_ERROR_CHECK(dps310_register_read(0x04, temp2, 1));
+      ESP_ERROR_CHECK(dps310_register_read(0x05, temp3, 1));
+
+      uint8_t t_raw = ((temp1[0] << 16) | (temp2[0] << 8) | temp3[0]);
+      uint8_t temperature = (double)(t_raw) / (65536)*165 - 40;
+
+
+      // ESP_ERROR_CHECK(dps310_register_read(DPS310_PRESSURE_ADDR, data, 1));
+      // ESP_ERROR_CHECK(dps310_register_read(DPS310_PRESSURE_ADDR, data, 2));
+
+
+      ESP_LOGI(I2C_TAG, "Temperature: %d", temperature);
+      //
+      // sprintf(pressure_0, "Pressure 0: %d", data[0]);
+      // sprintf(pressure_1, "Pressure 1: %d", data[1]);
+
+      // esp_mqtt_client_publish(client, "worms", pressure_0, 0, 1, 1);
+      // esp_mqtt_client_publish(client, "worms", pressure_1, 0, 1, 1);
     }
 
 
