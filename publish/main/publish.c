@@ -1,5 +1,5 @@
 // mqtt: https://github.com/SIMS-IOT-Devices/MQTT-ESP-IDF/blob/main/mqtt_tcp_pub_sub.c
-// i2c: https://github.com/espressif/esp-idf/blob/master/examples/peripherals/i2c/i2c_simple/main/i2c_simple_main.c
+
 
 #include <stdio.h>
 #include <stdint.h>
@@ -23,25 +23,17 @@
 #include "lwip/netdb.h"
 
 #include "mqtt_client.h"
-#include "driver/i2c.h"
+#include "DHT.h"
+// #include "driver/i2c.h"
 
-#define SSID                        "FRITZ!Box 7582 PJ"
-#define PASSPHRASE                  "95605533072376088713"
+#define SSID               "FRITZ!Box 7582 PJ"
+#define PASSPHRASE         "95605533072376088713"
 
-#define I2C_MASTER_SCL              22
-#define I2C_MASTER_SDA              21
-#define I2C_MASTER_NUM              0
-#define I2C_MASTER_FREQ_HZ          400000
-#define I2C_MASTER_RX_BUF_DISABLE   0
-#define I2C_MASTER_TX_BUF_DISABLE   0
-#define I2C_MASTER_TIMEOUT_MS       1000
-
-#define DPS310_SENSOR_ADDR          0x77
-#define DPS310_PRESSURE_ADDR        0x30
+#define DHT22_GPIO_NUM     4
 
 
 static const char *MQTT_TAG = "MQTT_TCP";
-static const char *I2C_TAG = "I2C";
+static const char *DHT22_TAG = "DHT22";
 
 static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
@@ -143,36 +135,6 @@ static esp_mqtt_client_handle_t mqtt_app_start(void)
     return client;
 }
 
-static esp_err_t i2c_master_init(void) {
-  int i2c_master_port = I2C_MASTER_NUM;
-
-  i2c_config_t conf = {
-    .mode = I2C_MODE_MASTER,
-    .sda_io_num = I2C_MASTER_SDA,
-    .scl_io_num = I2C_MASTER_SCL,
-    .sda_pullup_en = GPIO_PULLUP_ENABLE,
-    .scl_pullup_en = GPIO_PULLUP_ENABLE,
-    .master.clk_speed = I2C_MASTER_FREQ_HZ,
-  };
-
-  i2c_param_config(i2c_master_port, &conf);
-
-  return i2c_driver_install(i2c_master_port, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
-}
-
-static esp_err_t dps310_register_read(uint8_t reg_addr, uint8_t *data, size_t len) {
-  return i2c_master_write_read_device(I2C_MASTER_NUM, DPS310_SENSOR_ADDR, &reg_addr, 1, data, len, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
-}
-
-static esp_err_t dps310_register_write_byte(uint8_t reg_addr, uint8_t data) {
-  int ret;
-
-  uint8_t write_buf[2] = { reg_addr, data };
-  ret = i2c_master_write_to_device(I2C_MASTER_NUM, DPS310_SENSOR_ADDR, write_buf, sizeof(write_buf), I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
-
-  return ret;
-}
-
 void app_main(void)
 {
     nvs_flash_init();
@@ -185,54 +147,19 @@ void app_main(void)
 
     vTaskDelay(2000 / portTICK_PERIOD_MS);
 
-    ESP_LOGI(I2C_TAG, "Initializing I2C");
-    ESP_ERROR_CHECK(i2c_master_init());
-    ESP_LOGI(I2C_TAG, "I2C initialized successfully!");
+    setDHTgpio(DHT22_GPIO_NUM);
+    ESP_LOGI(DHT22_TAG, "Starting DHT22 measurements\n");
 
     vTaskDelay(2000 / portTICK_PERIOD_MS);
 
-
-    // Read coefficients 0x10 - 0x20
-
-    // Configure pressure measurements 0x06
-    ESP_ERROR_CHECK(dps310_register_write_byte(0x06, 0x00));
-
-    // Configure temperature measurements 0x07
-    ESP_ERROR_CHECK(dps310_register_write_byte(0x07, 0x00));
-
-    // Configure interrupt FIFO configuration 0x09
-    ESP_ERROR_CHECK(dps310_register_write_byte(0x09, 0x00));
-
-
-
-
     while (1) {
-      vTaskDelay(1000 / portTICK_PERIOD_MS);
+      vTaskDelay(2000 / portTICK_PERIOD_MS);
+      ESP_LOGI(DHT22_TAG, "=== Reading DHT22 ===\n");
+      int ret = readDHT();
 
-      // Set to temperature measurement mode
-      ESP_ERROR_CHECK(dps310_register_write_byte(0x08, 0x02));
+      errorHandler(ret);
 
-      uint8_t temp1[2];
-      uint8_t temp2[2];
-      uint8_t temp3[2];
-
-      // Read temperature 0x03 - 0x05
-      ESP_ERROR_CHECK(dps310_register_read(0x03, temp1, 1));
-      ESP_ERROR_CHECK(dps310_register_read(0x04, temp2, 1));
-      ESP_ERROR_CHECK(dps310_register_read(0x05, temp3, 1));
-
-      uint8_t t_raw = ((temp1[0] << 16) | (temp2[0] << 8) | temp3[0]);
-      uint8_t temperature = (double)(t_raw) / (65536)*165 - 40;
-
-
-      // ESP_ERROR_CHECK(dps310_register_read(DPS310_PRESSURE_ADDR, data, 1));
-      // ESP_ERROR_CHECK(dps310_register_read(DPS310_PRESSURE_ADDR, data, 2));
-
-
-      ESP_LOGI(I2C_TAG, "Temperature: %d", temperature);
-      //
-      // sprintf(pressure_0, "Pressure 0: %d", data[0]);
-      // sprintf(pressure_1, "Pressure 1: %d", data[1]);
+      ESP_LOGI(DHT22_TAG, "Hum: %.1f Tmp: %.1f\n", getHumidity(), getTemperature());
 
       // esp_mqtt_client_publish(client, "worms", pressure_0, 0, 1, 1);
       // esp_mqtt_client_publish(client, "worms", pressure_1, 0, 1, 1);
