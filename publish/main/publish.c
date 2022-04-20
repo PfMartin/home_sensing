@@ -159,10 +159,19 @@ void app_main(void)
 
       errorHandler(ret);
 
-      ESP_LOGI(DHT22_TAG, "Hum: %.1f Tmp: %.1f\n", getHumidity(), getTemperature());
+      float humidity = getHumidity();
+      float temperature = getTemperature();
 
-      // esp_mqtt_client_publish(client, "worms", pressure_0, 0, 1, 1);
-      // esp_mqtt_client_publish(client, "worms", pressure_1, 0, 1, 1);
+      ESP_LOGI(DHT22_TAG, "Hum: %.1f Tmp: %.1f\n", humidity, temperature);
+
+      char humidity_string[100];
+      char temperature_string[100];
+
+      sprintf(humidity_string, "Humidity: %.1f", humidity);
+      sprintf(temperature_string, "Temperature: %.1f", temperature);
+
+      esp_mqtt_client_publish(client, "worms", humidity_string, 0, 1, 1);
+      esp_mqtt_client_publish(client, "worms", temperature_string, 0, 1, 1);
     }
 
 
