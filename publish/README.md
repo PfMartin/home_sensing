@@ -2,6 +2,10 @@
 
 Starts a FreeRTOS task to publish data.
 
+## Wiring
+1. 4.7 k&#8486; pull up resistor for the data line
+1. GPIO4 - 7th on the right from the bottom
+
 ## Workflow for building the software
 
 1. Export the idf environment variable, in order to be able to use the environment variable $IDF_PATH

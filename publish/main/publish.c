@@ -85,17 +85,11 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
     {
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(MQTT_TAG, "MQTT_EVENT_CONNECTED");
-        esp_mqtt_client_subscribe(client, "worms", 0);
-        esp_mqtt_client_publish(client, "worms", "ESP32 publishing to topic 'worms'", 0, 1, 0);
+        esp_mqtt_client_publish(client, "worms/humidity", "ESP32 publishing to topic 'worms/humidity'", 0, 1, 0);
+        esp_mqtt_client_publish(client, "worms/temperature", "ESP32 publishing to topic 'worms/temperature'", 0, 1, 0);
         break;
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGI(MQTT_TAG, "MQTT_EVENT_DISCONNECTED");
-        break;
-    case MQTT_EVENT_SUBSCRIBED:
-        ESP_LOGI(MQTT_TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
-        break;
-    case MQTT_EVENT_UNSUBSCRIBED:
-        ESP_LOGI(MQTT_TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
         break;
     case MQTT_EVENT_PUBLISHED:
         ESP_LOGI(MQTT_TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
@@ -124,7 +118,6 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 static esp_mqtt_client_handle_t mqtt_app_start(void)
 {
     esp_mqtt_client_config_t mqtt_cfg = {
-        // .uri = "mqtt://mqtt.eclipseprojects.io",
         .host = "192.168.178.40",
         .port = 1884,
     };
@@ -133,6 +126,32 @@ static esp_mqtt_client_handle_t mqtt_app_start(void)
     esp_mqtt_client_start(client);
 
     return client;
+}
+
+void dht22_init(void) {
+  setDHTgpio(DHT22_GPIO_NUM);
+  ESP_LOGI(DHT22_TAG, "Starting DHT22 measurements");
+}
+
+void publish_dht22_measurements(esp_mqtt_client_handle_t client) {
+  ESP_LOGI(DHT22_TAG, "Reading DHT22");
+  int ret = readDHT();
+
+  errorHandler(ret);
+
+  float humidity = getHumidity();
+  float temperature = getTemperature();
+
+  ESP_LOGI(DHT22_TAG, "Hum: %.1f Tmp: %.1f\n", humidity, temperature);
+
+  char humidity_string[100];
+  char temperature_string[100];
+
+  sprintf(humidity_string, "Humidity: %.1f", humidity);
+  sprintf(temperature_string, "Temperature: %.1f", temperature);
+
+  esp_mqtt_client_publish(client, "worms/humidity", humidity_string, 0, 1, 1);
+  esp_mqtt_client_publish(client, "worms/temperature", temperature_string, 0, 1, 1);
 }
 
 void app_main(void)
@@ -145,33 +164,11 @@ void app_main(void)
 
     esp_mqtt_client_handle_t client = mqtt_app_start();
 
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
-
-    setDHTgpio(DHT22_GPIO_NUM);
-    ESP_LOGI(DHT22_TAG, "Starting DHT22 measurements\n");
-
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    dht22_init();
 
     while (1) {
       vTaskDelay(2000 / portTICK_PERIOD_MS);
-      ESP_LOGI(DHT22_TAG, "=== Reading DHT22 ===\n");
-      int ret = readDHT();
-
-      errorHandler(ret);
-
-      float humidity = getHumidity();
-      float temperature = getTemperature();
-
-      ESP_LOGI(DHT22_TAG, "Hum: %.1f Tmp: %.1f\n", humidity, temperature);
-
-      char humidity_string[100];
-      char temperature_string[100];
-
-      sprintf(humidity_string, "Humidity: %.1f", humidity);
-      sprintf(temperature_string, "Temperature: %.1f", temperature);
-
-      esp_mqtt_client_publish(client, "worms", humidity_string, 0, 1, 1);
-      esp_mqtt_client_publish(client, "worms", temperature_string, 0, 1, 1);
+      publish_dht22_measurements(client);
     }
 
 
