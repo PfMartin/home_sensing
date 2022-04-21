@@ -29,11 +29,16 @@
 #define SSID               "FRITZ!Box 7582 PJ"
 #define PASSPHRASE         "95605533072376088713"
 
+#define MQTT_BROKER_HOST   "192.168.178.40"
+#define MQTT_BROKER_PORT   1884
+#define MQTT_TAG           "MQTT_TCP"
+#define TOPIC_TEMP         "worms/temperature"
+#define TOPIC_HUM          "worms/humidity"
+
 #define DHT22_GPIO_NUM     4
+#define DHT22_TAG          "DHT22"
 
 
-static const char *MQTT_TAG = "MQTT_TCP";
-static const char *DHT22_TAG = "DHT22";
 
 static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
@@ -85,8 +90,8 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
     {
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(MQTT_TAG, "MQTT_EVENT_CONNECTED");
-        esp_mqtt_client_publish(client, "worms/humidity", "ESP32 publishing to topic 'worms/humidity'", 0, 1, 0);
-        esp_mqtt_client_publish(client, "worms/temperature", "ESP32 publishing to topic 'worms/temperature'", 0, 1, 0);
+        esp_mqtt_client_publish(client, TOPIC_HUM, "ESP32 publishing", 0, 1, 0);
+        esp_mqtt_client_publish(client, TOPIC_TEMP, "ESP32 publishing", 0, 1, 0);
         break;
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGI(MQTT_TAG, "MQTT_EVENT_DISCONNECTED");
@@ -118,8 +123,8 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 static esp_mqtt_client_handle_t mqtt_app_start(void)
 {
     esp_mqtt_client_config_t mqtt_cfg = {
-        .host = "192.168.178.40",
-        .port = 1884,
+        .host = MQTT_BROKER_HOST,
+        .port = MQTT_BROKER_PORT,
     };
     esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
     esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, client);
@@ -147,11 +152,11 @@ void publish_dht22_measurements(esp_mqtt_client_handle_t client) {
   char humidity_string[100];
   char temperature_string[100];
 
-  sprintf(humidity_string, "Humidity: %.1f", humidity);
-  sprintf(temperature_string, "Temperature: %.1f", temperature);
+  sprintf(humidity_string, "Humidity | %.1f | ", humidity);
+  sprintf(temperature_string, "Temperature | %.1f | ", temperature);
 
-  esp_mqtt_client_publish(client, "worms/humidity", humidity_string, 0, 1, 1);
-  esp_mqtt_client_publish(client, "worms/temperature", temperature_string, 0, 1, 1);
+  esp_mqtt_client_publish(client, TOPIC_HUM, humidity_string, 0, 1, 1);
+  esp_mqtt_client_publish(client, TOPIC_TEMP, temperature_string, 0, 1, 1);
 }
 
 void app_main(void)
