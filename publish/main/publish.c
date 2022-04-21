@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+#include <time.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -152,8 +153,8 @@ void publish_dht22_measurements(esp_mqtt_client_handle_t client) {
   char humidity_string[100];
   char temperature_string[100];
 
-  sprintf(humidity_string, "Humidity | %.1f | ", humidity);
-  sprintf(temperature_string, "Temperature | %.1f | ", temperature);
+  sprintf(humidity_string, "Humidity | %.1f", humidity);
+  sprintf(temperature_string, "Temperature | %.1f", temperature);
 
   esp_mqtt_client_publish(client, TOPIC_HUM, humidity_string, 0, 1, 1);
   esp_mqtt_client_publish(client, TOPIC_TEMP, temperature_string, 0, 1, 1);
