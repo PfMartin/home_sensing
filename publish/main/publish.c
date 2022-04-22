@@ -152,11 +152,11 @@ void publish_dht22_measurements(esp_mqtt_client_handle_t client) {
 
   ESP_LOGI(DHT22_TAG, "Hum: %.1f Tmp: %.1f\n", humidity, temperature);
 
-  char humidity_string[100];
-  char temperature_string[100];
+  char humidity_string[5];
+  char temperature_string[5];
 
-  sprintf(humidity_string, "Humidity | %.1f", humidity);
-  sprintf(temperature_string, "Temperature | %.1f", temperature);
+  sprintf(humidity_string, "%.1f", humidity);
+  sprintf(temperature_string, "%.1f", temperature);
 
   esp_mqtt_client_publish(client, TOPIC_HUM, humidity_string, 0, 1, 1);
   esp_mqtt_client_publish(client, TOPIC_TEMP, temperature_string, 0, 1, 1);
