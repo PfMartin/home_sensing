@@ -17,9 +17,6 @@
 #include "esp_netif.h"
 #include "esp_sleep.h"
 
-#include "soc/rtc.h"
-#include "driver/rtc_io.h"
-
 #include "lwip/sockets.h"
 #include "lwip/dns.h"
 #include "lwip/netdb.h"
@@ -38,6 +35,8 @@
 
 #define DHT22_GPIO_NUM     4
 #define DHT22_TAG          "DHT22"
+
+#define SLEEP_WAKEUP_TIME  300
 
 static RTC_DATA_ATTR struct timeval sleep_enter_time;
 
@@ -87,13 +86,14 @@ void wifi_connection()
 
 static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
 {
+    char connect_msg[31] = "ESP32 connected to MQTT Broker";
     esp_mqtt_client_handle_t client = event->client;
     switch (event->event_id)
     {
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(MQTT_TAG, "MQTT_EVENT_CONNECTED");
-        esp_mqtt_client_publish(client, TOPIC_HUM, "ESP32 publishing", 0, 1, 0);
-        esp_mqtt_client_publish(client, TOPIC_TEMP, "ESP32 publishing", 0, 1, 0);
+        esp_mqtt_client_publish(client, TOPIC_HUM, connect_msg, 0, 1, 0);
+        esp_mqtt_client_publish(client, TOPIC_TEMP, connect_msg, 0, 1, 0);
         break;
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGI(MQTT_TAG, "MQTT_EVENT_DISCONNECTED");
@@ -143,8 +143,9 @@ void dht22_init(void) {
 void publish_dht22_measurements(esp_mqtt_client_handle_t client) {
   ESP_LOGI(DHT22_TAG, "Reading DHT22");
   int ret = readDHT();
-
   errorHandler(ret);
+
+  vTaskDelay(500 / portTICK_PERIOD_MS);
 
   float humidity = getHumidity();
   float temperature = getTemperature();
@@ -193,11 +194,10 @@ void app_main(void)
     esp_mqtt_client_handle_t client = mqtt_app_start();
 
     dht22_init();
-
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
 
     handle_deep_sleep_wakeup();
-    set_wakeup_timer(20);
+    set_wakeup_timer(SLEEP_WAKEUP_TIME);
 
     for (int i = 0; i < 5; i++) {
       publish_dht22_measurements(client);
