@@ -25,7 +25,6 @@
 
 #include "mqtt_client.h"
 #include "DHT.h"
-// #include "driver/i2c.h"
 
 #define SSID               "FRITZ!Box 7582 PJ"
 #define PASSPHRASE         "95605533072376088713"
