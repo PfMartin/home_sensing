@@ -1,6 +1,3 @@
-// mqtt: https://github.com/SIMS-IOT-Devices/MQTT-ESP-IDF/blob/main/mqtt_tcp_pub_sub.c
-
-
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -18,6 +15,10 @@
 #include "nvs_flash.h"
 #include "esp_event.h"
 #include "esp_netif.h"
+#include "esp_sleep.h"
+
+#include "soc/rtc.h"
+#include "driver/rtc_io.h"
 
 #include "lwip/sockets.h"
 #include "lwip/dns.h"
@@ -38,6 +39,7 @@
 #define DHT22_GPIO_NUM     4
 #define DHT22_TAG          "DHT22"
 
+static RTC_DATA_ATTR struct timeval sleep_enter_time;
 
 
 static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
@@ -159,6 +161,27 @@ void publish_dht22_measurements(esp_mqtt_client_handle_t client) {
   esp_mqtt_client_publish(client, TOPIC_TEMP, temperature_string, 0, 1, 1);
 }
 
+void handle_deep_sleep_wakeup() {
+  struct timeval now;
+  gettimeofday(&now, NULL);
+  int sleep_time_ms = (now.tv_sec - sleep_enter_time.tv_sec) * 1000 + (now.tv_usec - sleep_enter_time.tv_usec) / 1000;
+
+  switch(esp_sleep_get_wakeup_cause()) {
+    case ESP_SLEEP_WAKEUP_TIMER: {
+      printf("Wake up from timer. Time spent in deep sleep: %dms\n", sleep_time_ms);
+      break;
+    }
+    case ESP_SLEEP_WAKEUP_UNDEFINED:
+    default:
+      printf("Not a deep sleep reset\n");
+  }
+}
+
+void set_wakeup_timer(int wakeup_time_sec) {
+  printf("Enabling time wakeup, %ds\n", wakeup_time_sec);
+  esp_sleep_enable_timer_wakeup(wakeup_time_sec * 1000000);
+}
+
 void app_main(void)
 {
     nvs_flash_init();
@@ -171,10 +194,17 @@ void app_main(void)
 
     dht22_init();
 
-    while (1) {
-      vTaskDelay(2000 / portTICK_PERIOD_MS);
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+    handle_deep_sleep_wakeup();
+    set_wakeup_timer(20);
+
+    for (int i = 0; i < 5; i++) {
       publish_dht22_measurements(client);
+      vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 
+    printf("Entering deep sleep\n");
+    esp_deep_sleep_start();
 
 }
