@@ -10,11 +10,8 @@
 #include "freertos/queue.h"
 
 #include "esp_wifi.h"
-#include "esp_system.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
-#include "esp_event.h"
-#include "esp_netif.h"
 #include "esp_sleep.h"
 
 #include "lwip/sockets.h"
@@ -27,7 +24,7 @@
 #define SSID               "FRITZ!Box 7582 PJ"
 #define PASSPHRASE         "95605533072376088713"
 
-#define MQTT_BROKER_HOST   "192.168.178.44"
+#define MQTT_BROKER_HOST   "ubuntu"
 #define MQTT_BROKER_PORT   1884
 #define MQTT_TAG           "MQTT_TCP"
 #define TOPIC_TEMP         "worms/temperature"
@@ -35,6 +32,8 @@
 
 #define DHT22_GPIO_NUM     4
 #define DHT22_TAG          "DHT22"
+
+#define BUTTON_GPIO_NUM    23
 
 #define SLEEP_WAKEUP_TIME  300
 
