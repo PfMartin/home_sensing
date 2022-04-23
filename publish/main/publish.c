@@ -27,7 +27,7 @@
 #define SSID               "FRITZ!Box 7582 PJ"
 #define PASSPHRASE         "95605533072376088713"
 
-#define MQTT_BROKER_HOST   "192.168.178.40"
+#define MQTT_BROKER_HOST   "192.168.178.44"
 #define MQTT_BROKER_PORT   1884
 #define MQTT_TAG           "MQTT_TCP"
 #define TOPIC_TEMP         "worms/temperature"
@@ -145,7 +145,7 @@ void publish_dht22_measurements(esp_mqtt_client_handle_t client) {
   int ret = readDHT();
   errorHandler(ret);
 
-  vTaskDelay(500 / portTICK_PERIOD_MS);
+  vTaskDelay(100 / portTICK_PERIOD_MS);
 
   float humidity = getHumidity();
   float temperature = getTemperature();
@@ -199,9 +199,9 @@ void app_main(void)
     handle_deep_sleep_wakeup();
     set_wakeup_timer(SLEEP_WAKEUP_TIME);
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 10; i++) {
       publish_dht22_measurements(client);
-      vTaskDelay(1000 / portTICK_PERIOD_MS);
+      vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 
     printf("Entering deep sleep\n");
