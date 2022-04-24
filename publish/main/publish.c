@@ -21,23 +21,25 @@
 #include "mqtt_client.h"
 #include "DHT.h"
 
-#define SSID               "FRITZ!Box 7582 PJ"
-#define PASSPHRASE         "95605533072376088713"
-
-#define MQTT_BROKER_HOST   "ubuntu"
-#define MQTT_BROKER_PORT   1884
-#define MQTT_TAG           "MQTT_TCP"
-#define TOPIC_TEMP         "worms/temperature"
-#define TOPIC_HUM          "worms/humidity"
-
-#define DHT22_GPIO_NUM     4
-#define DHT22_TAG          "DHT22"
-
-#define BUTTON_GPIO_NUM    23
-
-#define SLEEP_WAKEUP_TIME  300
+#define SSID                "FRITZ!Box 7582 PJ"
+#define PASSPHRASE          "95605533072376088713"
+#define WIFI_MAX_RETRY_NUM  5
+  
+#define MQTT_BROKER_HOST    "ubuntu"
+#define MQTT_BROKER_PORT    1884
+#define MQTT_TAG            "MQTT_TCP"
+#define TOPIC_TEMP          "worms/temperature"
+#define TOPIC_HUM           "worms/humidity"
+  
+#define DHT22_GPIO_NUM      4
+#define DHT22_TAG           "DHT22"
+  
+#define BUTTON_GPIO_NUM     23
+  
+#define SLEEP_WAKEUP_TIME   300
 
 static RTC_DATA_ATTR struct timeval sleep_enter_time;
+static int wifi_connect_retry_num = 0;
 
 
 static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
@@ -46,22 +48,30 @@ static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_b
     {
     case WIFI_EVENT_STA_START:
         printf("WiFi connecting ... \n");
+        esp_wifi_connect();
         break;
     case WIFI_EVENT_STA_CONNECTED:
         printf("WiFi connected ... \n");
         break;
     case WIFI_EVENT_STA_DISCONNECTED:
         printf("WiFi lost connection ... \n");
+        if (wifi_connect_retry_num < WIFI_MAX_RETRY_NUM) {
+          printf("Trying to reconnect ... \n");
+          esp_wifi_connect();
+          wifi_connect_retry_num++;
+        }
+        printf("Connection to AP failed\n");
         break;
     case IP_EVENT_STA_GOT_IP:
         printf("WiFi got IP ... \n\n");
+        wifi_connect_retry_num = 0;
         break;
     default:
         break;
     }
 }
 
-void wifi_connection()
+void init_wifi()
 {
     // 1 - Wi-Fi/LwIP Init Phase
     esp_netif_init();                    // TCP/IP initiation 					s1.1
@@ -79,8 +89,6 @@ void wifi_connection()
     esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_configuration);
     // 3 - Wi-Fi Start Phase
     esp_wifi_start();
-    // 4- Wi-Fi Connect Phase
-    esp_wifi_connect();
 }
 
 static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
@@ -185,7 +193,7 @@ void set_wakeup_timer(int wakeup_time_sec) {
 void app_main(void)
 {
     nvs_flash_init();
-    wifi_connection();
+    init_wifi();
 
     vTaskDelay(2000 / portTICK_PERIOD_MS);
     printf("WIFI was initiated ...........\n");
