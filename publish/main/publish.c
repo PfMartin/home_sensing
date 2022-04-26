@@ -36,11 +36,9 @@
 
 #define BUTTON_GPIO_NUM     23
 
-#define SLEEP_WAKEUP_TIME   300
+#define SLEEP_WAKEUP_TIME 60
 
 static RTC_DATA_ATTR struct timeval sleep_enter_time;
-static int wifi_connect_retry_num = 0;
-static bool is_wifi_connected;
 
 
 static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
@@ -49,33 +47,22 @@ static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_b
     {
     case WIFI_EVENT_STA_START:
         printf("WiFi connecting ... \n");
-        esp_wifi_connect();
         break;
     case WIFI_EVENT_STA_CONNECTED:
         printf("WiFi connected ... \n");
         break;
     case WIFI_EVENT_STA_DISCONNECTED:
         printf("WiFi lost connection ... \n");
-        // Not teset yet
-        if (wifi_connect_retry_num < WIFI_MAX_RETRY_NUM) {
-          printf("Trying to reconnect ... \n");
-          esp_wifi_connect();
-          wifi_connect_retry_num++;
-          vTaskDelay(1000 / portTICK_PERIOD_MS);
-        }
-        printf("Connection to AP failed\n");
         break;
     case IP_EVENT_STA_GOT_IP:
         printf("WiFi got IP ... \n\n");
-        wifi_connect_retry_num = 0;
-        is_wifi_connected = true;
         break;
     default:
         break;
     }
 }
 
-void init_wifi()
+esp_err_t init_wifi()
 {
     // 1 - Wi-Fi/LwIP Init Phase
     esp_netif_init();                    // TCP/IP initiation 					s1.1
@@ -92,8 +79,9 @@ void init_wifi()
             .password = PASSPHRASE}};
     esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_configuration);
     // 3 - Wi-Fi Start Phase
-    esp_wifi_start();
-    is_wifi_connected = false;
+    esp_err_t start_err = esp_wifi_start();
+
+    return start_err;
 }
 
 static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
@@ -197,30 +185,49 @@ void set_wakeup_timer(int wakeup_time_sec) {
 
 void app_main(void)
 {
-    nvs_flash_init();
-    init_wifi();
 
     handle_deep_sleep_wakeup();
     set_wakeup_timer(SLEEP_WAKEUP_TIME);
 
-    while(wifi_connect_retry_num != WIFI_MAX_RETRY_NUM) {
-      vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
+    nvs_flash_init();
 
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
-    printf("WIFI was initiated ...........\n");
+    esp_err_t init_err;
+    do {
+      printf("Initializing WIFI\n");
+      init_err = init_wifi();
+      vTaskDelay(3000 / portTICK_PERIOD_MS);
+    } while (init_err != ESP_OK);
 
+    esp_err_t connect_err;
+    do {
+      printf("Trying to connect to WIFI\n");
+      connect_err = esp_wifi_connect();
+      vTaskDelay(3000 / portTICK_PERIOD_MS);
+    }  while (connect_err != ESP_OK);
+
+    printf("Connecting to MQTT Broker \n");
     esp_mqtt_client_handle_t client = mqtt_app_start();
 
     dht22_init();
     vTaskDelay(2000 / portTICK_PERIOD_MS);
 
     for (int i = 0; i < 10; i++) {
-        publish_dht22_measurements(client);
-        vTaskDelay(100 / portTICK_PERIOD_MS);
-      }
+      publish_dht22_measurements(client);
+      vTaskDelay(100 / portTICK_PERIOD_MS);
+    }
+
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+    esp_mqtt_client_stop(client);
+
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    esp_mqtt_client_disconnect(client);
+
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    esp_wifi_stop();
+
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
 
     printf("Entering deep sleep\n");
     esp_deep_sleep_start();
-
 }
