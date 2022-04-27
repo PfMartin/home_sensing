@@ -9,4 +9,4 @@ broker/data
 publish/build
 
 # Backend
-__pychache__/*
+*__pycache__/
