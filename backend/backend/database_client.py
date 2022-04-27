@@ -4,6 +4,8 @@ import psycopg2
 from psycopg2 import sql
 from dotenv import load_dotenv
 
+from datetime import datetime
+
 
 class DatabaseClient:
     def __init__(self):
@@ -31,7 +33,7 @@ class DatabaseClient:
 
         cur.execute(
             sql.SQL(
-                "CREATE TABLE {table} (id serial PRIMARY KEY, value real, timestamp date DEFAULT CURRENT_TIMESTAMP, location varchar (50) NOT NULL)"
+                "CREATE TABLE {table} (id serial PRIMARY KEY, value real, timestamp timestamp DEFAULT CURRENT_TIMESTAMP, location varchar (50) NOT NULL)"
             ).format(table=sql.Identifier(table_name))
         )
 
@@ -45,6 +47,21 @@ class DatabaseClient:
             sql.SQL("DROP TABLE IF EXISTS {table}").format(
                 table=sql.Identifier(table_name)
             )
+        )
+
+        self.connection.commit()
+        cur.close()
+
+    def insert_data(self, table_name, value, timestamp, location):
+        cur = self.connection.cursor()
+
+        print(timestamp)
+
+        cur.execute(
+            sql.SQL(
+                "INSERT INTO {table} (value, timestamp, location) VALUES (%s, %s, %s)"
+            ).format(table=sql.Identifier(table_name)),
+            [value, timestamp, location],
         )
 
         self.connection.commit()
