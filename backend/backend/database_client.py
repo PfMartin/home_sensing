@@ -4,16 +4,16 @@ import psycopg2
 from psycopg2 import sql
 from dotenv import load_dotenv
 
-dotenv_path = join(dirname(__file__), "database.env")
-load_dotenv(dotenv_path)
-
 
 class DatabaseClient:
-    def __init__(self, host, username, password, db_name):
-        self.host = host
-        self.username = username
-        self.password = password
-        self.db_name = db_name
+    def __init__(self):
+        dotenv_path = join(dirname(__file__), "..", "..", "Database.env")
+        load_dotenv(dotenv_path)
+
+        self.host = os.environ.get("DB_HOST")
+        self.username = os.environ.get("DB_USERNAME")
+        self.password = os.environ.get("DB_PASSWORD")
+        self.db_name = os.environ.get("DB_DATABASE")
 
     def connect(self):
         self.connection = psycopg2.connect(
