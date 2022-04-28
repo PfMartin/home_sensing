@@ -28,6 +28,21 @@ class DatabaseClient:
     def disconnect(self):
         self.connection.close()
 
+    def list_tables(self):
+        cur = self.connection.cursor()
+        cur.execute(
+            "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
+        )
+
+        tables = []
+
+        for table in cur.fetchall():
+            tables.append(table[0])
+
+        cur.close()
+
+        return tables
+
     def create_table(self, table_name):
         cur = self.connection.cursor()
 
@@ -52,6 +67,17 @@ class DatabaseClient:
         self.connection.commit()
         cur.close()
 
+    def sync_tables(self, desired_tables):
+        existing_tables = self.list_tables()
+
+        for desired_table in desired_tables:
+            if desired_table not in existing_tables:
+                self.create_table(desired_table)
+
+        for existing_table in existing_tables:
+            if existing_table not in desired_tables:
+                self.drop_table(existing_table)
+
     def insert_data(self, table_name, value, timestamp, location):
         cur = self.connection.cursor()
 
@@ -66,3 +92,10 @@ class DatabaseClient:
 
         self.connection.commit()
         cur.close()
+
+
+if __name__ == "__main__":
+    database_client = DatabaseClient()
+    database_client.connect()
+    database_client.sync_tables(["temperature", "humidity"])
+    database_client.disconnect()

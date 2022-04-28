@@ -18,9 +18,7 @@ def on_message(client, userdata, msg):
         [location, topic] = msg.topic.split("/")
         timestamp = datetime.now()
 
-        print(
-            f"{location} | {topic} | {msg.payload.decode()} | {timestamp}"
-        )
+        print(f"{location} | {topic} | {msg.payload.decode()} | {timestamp}")
 
         database_client = DatabaseClient()
         database_client.connect()
