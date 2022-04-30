@@ -33,10 +33,11 @@
 
 #define DHT22_GPIO_NUM      4
 #define DHT22_TAG           "DHT22"
+#define NUM_READINGS        20
 
 #define BUTTON_GPIO_NUM     23
 
-#define SLEEP_WAKEUP_TIME 60
+#define SLEEP_WAKEUP_TIME   600
 
 static RTC_DATA_ATTR struct timeval sleep_enter_time;
 
@@ -211,7 +212,7 @@ void app_main(void)
     dht22_init();
     vTaskDelay(2000 / portTICK_PERIOD_MS);
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < NUM_READINGS; i++) {
       publish_dht22_measurements(client);
       vTaskDelay(100 / portTICK_PERIOD_MS);
     }
