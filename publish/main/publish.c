@@ -37,7 +37,7 @@
 
 #define BUTTON_GPIO_NUM     23
 
-#define SLEEP_WAKEUP_TIME   600
+#define SLEEP_WAKEUP_TIME   60
 
 static RTC_DATA_ATTR struct timeval sleep_enter_time;
 
@@ -146,21 +146,37 @@ void publish_dht22_measurements(esp_mqtt_client_handle_t client) {
   int ret = readDHT();
   errorHandler(ret);
 
-  vTaskDelay(100 / portTICK_PERIOD_MS);
+  char humidity_buf[120];
+  char temperature_buf[120];
 
-  float humidity = getHumidity();
-  float temperature = getTemperature();
+  float humidity;
+  float temperature;
 
-  ESP_LOGI(DHT22_TAG, "Hum: %.1f Tmp: %.1f\n", humidity, temperature);
-
-  char humidity_string[5];
   char temperature_string[5];
+  char humidity_string[5];
 
-  sprintf(humidity_string, "%.1f", humidity);
-  sprintf(temperature_string, "%.1f", temperature);
+  for (int i = 0; i < 20; i++) {
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+    humidity = getHumidity();
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+    sprintf(humidity_string, "|%.1f", humidity);
+    strncat(humidity_buf, humidity_string, 5);
+    printf("%s\n", humidity_buf);
 
-  esp_mqtt_client_publish(client, TOPIC_HUM, humidity_string, 0, 1, 1);
-  esp_mqtt_client_publish(client, TOPIC_TEMP, temperature_string, 0, 1, 1);
+
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+    temperature = getTemperature();
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+    sprintf(temperature_string, "|%.1f", temperature);
+    strncat(temperature_buf, temperature_string, 5);
+    printf("%s\n", temperature_buf);
+  }
+
+
+  ESP_LOGI(DHT22_TAG, "Hum: %s Tmp: %s\n", humidity_buf, temperature_buf);
+
+  esp_mqtt_client_publish(client, TOPIC_HUM, humidity_buf, 0, 1, 1);
+  esp_mqtt_client_publish(client, TOPIC_TEMP, temperature_buf, 0, 1, 1);
 }
 
 void handle_deep_sleep_wakeup() {
@@ -212,10 +228,7 @@ void app_main(void)
     dht22_init();
     vTaskDelay(2000 / portTICK_PERIOD_MS);
 
-    for (int i = 0; i < NUM_READINGS; i++) {
-      publish_dht22_measurements(client);
-      vTaskDelay(100 / portTICK_PERIOD_MS);
-    }
+    publish_dht22_measurements(client);
 
     vTaskDelay(1000 / portTICK_PERIOD_MS);
 
