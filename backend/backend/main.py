@@ -3,14 +3,11 @@ import os
 from os.path import join, dirname
 from dotenv import load_dotenv
 from datetime import datetime
-from database_client import DatabaseClient
+from DatabaseClient import DatabaseClient
 from IqrFilter import IqrFilter
 
 dotenv_path = join(dirname(__file__), "..", "..", "Mqtt.env")
 load_dotenv(dotenv_path)
-
-temperatures = []
-humidities = []
 
 def on_connect(client, userdata, flags, rc):
     print(f"Connected with result code: {rc}")
@@ -20,31 +17,20 @@ def on_message(client, userdata, msg):
     if msg.payload.decode() != "ESP32 connected to MQTT Broker":
         [location, topic] = msg.topic.split("/")
         timestamp = datetime.now()
+        message = msg.payload.decode()
 
-        data_point = {
-            "location": location,
-            "topic": topic,
-            "value": msg.payload.decode()
-        }
+        value_list = [float(value) for value in message.split('|')[1:]]
 
-        if (topic == 'temperature'):
-            temperatures.append(data_point)
-        elif (topic == 'humidity'):
-            humidities.append(data_point)
+        iqr_filter = IqrFilter(value_list)
+        mean_value = iqr_filter.clean_mean()
 
-        if (len(temperatures) >= 20):
-            print("\nNOW IT's FILTERING TIME FOR TEMPS")
-            temperatures.clear()
+        print(f'{location}/{topic} | {timestamp} | {mean_value}')
 
-        if (len(humidities) >= 20):
-            print("\nNOW IT'S FILTERING TIME FOR HUMS")
-            humidities.clear()
+        database_client = DatabaseClient()
+        database_client.connect()
+        database_client.insert_data(topic, mean_value, timestamp, location)
 
-        # database_client = DatabaseClient()
-        # database_client.connect()
-        # database_client.insert_data(topic, msg.payload.decode(), timestamp, location)
-        #
-        # database_client.disconnect()
+        database_client.disconnect()
 
 
 def init_client():

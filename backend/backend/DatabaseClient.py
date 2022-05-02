@@ -81,8 +81,6 @@ class DatabaseClient:
     def insert_data(self, table_name, value, timestamp, location):
         cur = self.connection.cursor()
 
-        print(timestamp)
-
         cur.execute(
             sql.SQL(
                 "INSERT INTO {table} (value, timestamp, location) VALUES (%s, %s, %s)"

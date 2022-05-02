@@ -146,8 +146,8 @@ void publish_dht22_measurements(esp_mqtt_client_handle_t client) {
   int ret = readDHT();
   errorHandler(ret);
 
-  char humidity_buf[120];
-  char temperature_buf[120];
+  char humidity_buf[120] = "Humidity";
+  char temperature_buf[120] = "Temperature";
 
   float humidity;
   float temperature;
@@ -161,7 +161,6 @@ void publish_dht22_measurements(esp_mqtt_client_handle_t client) {
     vTaskDelay(100 / portTICK_PERIOD_MS);
     sprintf(humidity_string, "|%.1f", humidity);
     strncat(humidity_buf, humidity_string, 5);
-    printf("%s\n", humidity_buf);
 
 
     vTaskDelay(100 / portTICK_PERIOD_MS);
@@ -169,7 +168,6 @@ void publish_dht22_measurements(esp_mqtt_client_handle_t client) {
     vTaskDelay(100 / portTICK_PERIOD_MS);
     sprintf(temperature_string, "|%.1f", temperature);
     strncat(temperature_buf, temperature_string, 5);
-    printf("%s\n", temperature_buf);
   }
 
 

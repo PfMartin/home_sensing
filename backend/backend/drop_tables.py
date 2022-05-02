@@ -1,4 +1,4 @@
-from database_client import DatabaseClient
+from DatabaseClient import DatabaseClient
 
 database_client = DatabaseClient()
 
