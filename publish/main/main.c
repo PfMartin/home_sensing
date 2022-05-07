@@ -65,7 +65,7 @@ void app_main(void)
     start_deep_sleep();
 }
 
-
+/* FUNCTION IMPLEMENTATIONS */
 void dht22_init(void) {
   setDHTgpio(DHT22_GPIO_NUM);
   ESP_LOGI(DHT22_TAG, "Starting DHT22 measurements");
