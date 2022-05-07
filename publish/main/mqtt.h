@@ -11,4 +11,6 @@ void mqtt_publish(esp_mqtt_client_handle_t client, char topic[20], char data[5])
 
 void mqtt_cleanup(esp_mqtt_client_handle_t client);
 
+void get_topic(char *target, char measurement_type[15]);
+
 #endif /* MQTT_H */
