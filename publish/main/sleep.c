@@ -6,7 +6,6 @@
 
 #include "esp_sleep.h"
 
-
 static RTC_DATA_ATTR struct timeval sleep_enter_time;
 
 void handle_deep_sleep_wakeup(void) {
