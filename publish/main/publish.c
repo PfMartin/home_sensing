@@ -141,41 +141,27 @@ void dht22_init(void) {
   ESP_LOGI(DHT22_TAG, "Starting DHT22 measurements");
 }
 
-void publish_dht22_measurements(esp_mqtt_client_handle_t client) {
+void publish_data(esp_mqtt_client_handle_t client, char data_type[4], char topic[20]) {
+  float measurement;
+  char measurement_string[5];
+
   ESP_LOGI(DHT22_TAG, "Reading DHT22");
   int ret = readDHT();
   errorHandler(ret);
 
-  char humidity_buf[120] = "Humidity";
-  char temperature_buf[120] = "Temperature";
+  vTaskDelay(100 / portTICK_PERIOD_MS);
 
-  float humidity;
-  float temperature;
-
-  char temperature_string[5];
-  char humidity_string[5];
-
-  for (int i = 0; i < 20; i++) {
-    vTaskDelay(100 / portTICK_PERIOD_MS);
-    humidity = getHumidity();
-    vTaskDelay(100 / portTICK_PERIOD_MS);
-    sprintf(humidity_string, "|%.1f", humidity);
-    strncat(humidity_buf, humidity_string, 5);
-
-
-    vTaskDelay(100 / portTICK_PERIOD_MS);
-    temperature = getTemperature();
-    vTaskDelay(100 / portTICK_PERIOD_MS);
-    sprintf(temperature_string, "|%.1f", temperature);
-    strncat(temperature_buf, temperature_string, 5);
+  if (strcmp(data_type, "hum") == 0) {
+    measurement = getHumidity();
+  } else {
+    measurement = getTemperature();
   }
 
-
-  ESP_LOGI(DHT22_TAG, "Hum: %s Tmp: %s\n", humidity_buf, temperature_buf);
-
-  esp_mqtt_client_publish(client, TOPIC_HUM, humidity_buf, 0, 1, 1);
-  esp_mqtt_client_publish(client, TOPIC_TEMP, temperature_buf, 0, 1, 1);
+  vTaskDelay(100 / portTICK_PERIOD_MS);
+  sprintf(measurement_string, "%.1f", measurement);
+  esp_mqtt_client_publish(client, topic, measurement_string, 0, 1, 1);
 }
+
 
 void handle_deep_sleep_wakeup() {
   struct timeval now;
@@ -226,19 +212,26 @@ void app_main(void)
     dht22_init();
     vTaskDelay(2000 / portTICK_PERIOD_MS);
 
-    publish_dht22_measurements(client);
 
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+    for (int i = 0; i < 20; i++) {
+      vTaskDelay(100 / portTICK_PERIOD_MS);
+      publish_data(client, "hum", TOPIC_HUM);
+      vTaskDelay(100 / portTICK_PERIOD_MS);
+      publish_data(client, "temp", TOPIC_TEMP);
+    }
+
+    vTaskDelay(500 / portTICK_PERIOD_MS);
 
     esp_mqtt_client_stop(client);
 
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    vTaskDelay(500 / portTICK_PERIOD_MS);
     esp_mqtt_client_disconnect(client);
 
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    vTaskDelay(500 / portTICK_PERIOD_MS);
     esp_wifi_stop();
 
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    vTaskDelay(500 / portTICK_PERIOD_MS);
 
     printf("Entering deep sleep\n");
     esp_deep_sleep_start();
