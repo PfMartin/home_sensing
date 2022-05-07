@@ -9,10 +9,13 @@ import (
   mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
+
 func main() {
   var client mqtt.Client = setupClient()
   connect(client)
-  subscribe(client)
+
+  var topics = [2]string{"worms/temperature", "worms/humidity"}
+  subscribe(client, topics)
 }
 
 func setupClient() mqtt.Client {
@@ -43,16 +46,17 @@ func connect(client mqtt.Client) {
   }
 }
 
-func subscribe(client mqtt.Client) {
-  c := make(chan os.Signal, 1)
+func subscribe(client mqtt.Client, topics [2]string) {
+  c := make(chan os.Signal, 1) // Create channel for incoming messages
   signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
-  topic := "worms/temperature"
-  token := client.Subscribe(topic, 1, onMessageReceived)
-  token.Wait()
+  for _, topic := range topics {
+    token := client.Subscribe(topic, 1, onMessageReceived)
+    token.Wait()
+    fmt.Printf("Subscribed to topic: %s\n", topic)
+  }
 
-  fmt.Printf("Subscribed to topic: %s\n", topic)
-  <-c
+  <-c // Read from channel but let incoming messages be processed by onMessageReceived
 }
 
 func onMessageReceived(client mqtt.Client, message mqtt.Message) {
