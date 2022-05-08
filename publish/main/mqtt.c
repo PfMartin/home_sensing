@@ -15,11 +15,11 @@
 char topic_hum[30] = "";
 char topic_temp[30] = "";
 
-void get_topic(char *target, char measurement_type[15]) {
-    char topic[30] = LOCATION;
+void get_topic(char *target, char measurement_type[12]) {
+    char topic[31] = LOCATION;
 
-    strncat(topic, measurement_type, 25);
-    strncat(target, topic, 25);
+    strncat(topic, measurement_type, 30);
+    strncat(target, topic, 30);
 }
 
 esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
