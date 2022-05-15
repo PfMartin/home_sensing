@@ -1,7 +1,7 @@
 package main
 
 import (
-  "mqttClient"
+  "go-backend/mqttClient"
   mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
