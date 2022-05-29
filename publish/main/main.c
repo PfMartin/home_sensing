@@ -13,6 +13,7 @@
 #define DHT22_GPIO_NUM      4
 #define DHT22_TAG           "DHT22"
 #define NUM_READINGS        20
+#define ENDL_MSG            "255"    // Endler message tells the backend that the data can be processed
 
 #define SLEEP_WAKEUP_TIME   60
 
@@ -99,6 +100,15 @@ void publish_data(esp_mqtt_client_handle_t client, char data_type[4], char topic
 }
 
 void cleanup(esp_mqtt_client_handle_t client) {
+    char hum_topic[30] = "";
+    char temp_topic[30] = "";
+
+    get_topic(hum_topic, "/humidity");
+    get_topic(temp_topic, "/temperature");
+
+    mqtt_publish(client, hum_topic, ENDL_MSG);
+    mqtt_publish(client, temp_topic, ENDL_MSG);
+
     vTaskDelay(500 / portTICK_PERIOD_MS);
     mqtt_cleanup(client);
     vTaskDelay(500 / portTICK_PERIOD_MS);
