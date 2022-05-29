@@ -6,16 +6,17 @@ import (
   "os/signal"
   "syscall"
   "strconv"
+  "go-backend/dataProcessor"
 
   mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
-var humData []float64
-var tempData []float64
+var processor dataProcessor.DataProcessor
 
 func SetupClient() mqtt.Client {
-  humData = make([]float64, 20)
-  tempData = make([]float64, 20)
+
+  processor = dataProcessor.DataProcessor{}
+  processor.Init()
 
   var connectionHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
     fmt.Println("Connected")
@@ -67,28 +68,13 @@ func onMessageReceived(client mqtt.Client, message mqtt.Message) {
   const bitSize = 64
   value, err := strconv.ParseFloat(string(message.Payload()), bitSize)
   if err == nil {
-    // data = append(data, floatNum)
-    if (topic == "worms/humidity") {
-      addToStack(humData, value)
-    } else if (topic == "worms/temperature") {
-      addToStack(tempData, value)
-    }
+    processor.AddData(topic, value)
   }
 
 
-  fmt.Println(humData)
-  fmt.Println(tempData)
+  fmt.Println(processor.HumData)
+  fmt.Println(processor.TempData)
 
-}
-
-func addToStack(a []float64, value float64) {
-  for index, _ := range a {
-    if index + 1 < cap(a) {
-      a[index] = a[index + 1]
-    }
-  }
-
-  a[cap(a) - 1] = value
 }
 
 // Only accept data within 3 standard deviations
