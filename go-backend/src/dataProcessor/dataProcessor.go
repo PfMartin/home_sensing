@@ -1,7 +1,7 @@
 package dataProcessor
 
 import (
-  "fmt"
+  "strings"
 )
 
 type DataProcessor struct {
@@ -15,16 +15,17 @@ func (d *DataProcessor) Init() {
 }
 
 func (d *DataProcessor) AddData(topic string, value float64) {
-  if (topic == "worms/humidity") {
+  valueCat := strings.Split(topic, "/")[1]
+
+  if (valueCat == "humidity") {
     addToStack(d.HumData, value)
-  } else if (topic == "worms/temperature") {
+  } else if (valueCat == "temperature") {
     addToStack(d.TempData, value)
   }
+
 }
 
 func addToStack(a []float64, value float64) {
-
-  fmt.Println(len(a))
   for index, _ := range a {
     if index + 1 < cap(a) {
       a[index] = a[index + 1]

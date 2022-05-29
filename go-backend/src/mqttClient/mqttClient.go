@@ -2,6 +2,7 @@ package mqttClient
 
 import (
   "fmt"
+  "log"
   "os"
   "os/signal"
   "syscall"
@@ -19,12 +20,12 @@ func SetupClient() mqtt.Client {
   processor.Init()
 
   var connectionHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
-    fmt.Println("Connected")
+    log.Println("Connected")
   }
 
 
   var connectLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, err error) {
-    fmt.Printf("Connection lost: %v\n", err)
+    log.Printf("Connection lost: %v\n", err)
   }
 
   broker := "192.168.178.44"
@@ -53,7 +54,7 @@ func Subscribe(client mqtt.Client, topics [2]string) {
   for _, topic := range topics {
     token := client.Subscribe(topic, 1, onMessageReceived)
     token.Wait()
-    fmt.Printf("Subscribed to topic: %s\n", topic)
+    log.Printf("Subscribed to topic: %s\n", topic)
   }
 
   <-c // Read from channel but let incoming messages be processed by onMessageReceived
@@ -62,9 +63,6 @@ func Subscribe(client mqtt.Client, topics [2]string) {
 func onMessageReceived(client mqtt.Client, message mqtt.Message) {
   topic := message.Topic()
 
-  fmt.Printf("Received message on topic: %s\nMessage: %s\n", topic, message.Payload())
-
-
   const bitSize = 64
   value, err := strconv.ParseFloat(string(message.Payload()), bitSize)
   if err == nil {
@@ -72,8 +70,8 @@ func onMessageReceived(client mqtt.Client, message mqtt.Message) {
   }
 
 
-  fmt.Println(processor.HumData)
-  fmt.Println(processor.TempData)
+  log.Println(processor.HumData)
+  log.Println(processor.TempData)
 
 }
 
