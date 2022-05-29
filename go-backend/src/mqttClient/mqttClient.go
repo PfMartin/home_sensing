@@ -64,14 +64,24 @@ func onMessageReceived(client mqtt.Client, message mqtt.Message) {
   topic := message.Topic()
 
   const bitSize = 64
-  value, err := strconv.ParseFloat(string(message.Payload()), bitSize)
-  if err == nil {
-    processor.AddData(topic, value)
+
+  if string(message.Payload()) != "ESP32 connected to MQTT Broker" {
+    value, err := strconv.ParseFloat(string(message.Payload()), bitSize)
+    if err != nil {
+      log.Printf("%s\n", message.Payload())
+      log.Println("ERROR")
+    } else if value != 255 {
+      processor.AddData(topic, value)
+    } else {
+      // Process data
+      log.Println(processor.HumData)
+      log.Println(processor.TempData)
+    }
+  } else {
+    log.Printf("Collecting data for topic: %s\n", message.Topic())
   }
 
 
-  log.Println(processor.HumData)
-  log.Println(processor.TempData)
 
 }
 
